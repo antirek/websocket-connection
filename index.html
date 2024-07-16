@@ -2,20 +2,6 @@
 
 <script>
 
-
-  function connect() {
-    return new Promise(function(resolve, reject) {
-        var server = new WebSocket('ws://mysite:1234');
-        server.onopen = function() {
-            resolve(server);
-        };
-        server.onerror = function(err) {
-            reject(err);
-        };
-
-    });
-}
-
   const createWSSClient = ({room, appId, key, onMessage}) => {
     return new Promise(function(resolve, reject) { 
       const url = 'wss://amo-apps-websocket.services.mobilon.ru';
@@ -47,15 +33,13 @@
   }
 
   const client = createWSSClient({
-    room: 'tt',
+    room: 'room_tt',
     appId: 'app09',
     key: 'keyrndmagtn',
     onMessage: (e)=> {console.log(e)},
   }).then((client)=> {
     client.send({hello: 'hello2'});
   })
-  
-  
   
   
 </script>
