@@ -3,32 +3,45 @@
 <script>
 
   const createWSSClient = ({room, appId, key, onMessage}) => {
-    return new Promise(function(resolve, reject) { 
-      const url = 'wss://amo-apps-websocket.services.mobilon.ru';
-      const r = [`room=${room}`, `appId=${appId}`, `key=${key}`].join('&');
-      const socket = new WebSocket(url + '?' + r);
+    return new Promise(function(resolve, reject) {
+      const init = () => {
+        const url = 'wss://amo-apps-websocket.services.mobilon.ru';
+        const r = [`room=${room}`, `appId=${appId}`, `key=${key}`].join('&');
+        const socket = new WebSocket(url + '?' + r);
 
-      socket.onopen = () => {
-        console.log('Connected to the server');
-        // socket.send(JSON.stringify({hello: 'hello'}));
-        resolve({send})
-      };
+        socket.onopen = () => {
+          console.log('Connected to the server');
+          // socket.send(JSON.stringify({hello: 'hello'}));
+          resolve({send})
+        };
 
-      socket.onmessage = ((event) => {
-        console.log(`Received message from server, ${event.data}`);
-        onMessage(event.data);
-      })
+        socket.onmessage = ((event) => {
+          console.log(`Received message from server, ${event.data}`);
+          onMessage(event.data);
+        })
 
-      socket.onerror = function(err) {
-        reject(err);
-      };
+        socket.onerror = function(err) {
+          reject(err);
+        };
 
-      const send = (object) => {
-        if (!socket.readyState) {
-          return;
+        socket.onclose = function () {
+          setTimeout(function () {
+            init()
+          }, 1000);
+        };
+
+        const send = (object) => {
+          if (!socket.readyState) {
+            return;
+          }
+          socket.send(JSON.stringify(object));
         }
-        socket.send(JSON.stringify(object));
+
+        setInterval(() => {
+          send({ping: 1});
+        }, 1000);
       }
+      init();
     })
   }
 
