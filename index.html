@@ -1,31 +1,49 @@
 <html>
 
 <script>
+
+
+  function connect() {
+    return new Promise(function(resolve, reject) {
+        var server = new WebSocket('ws://mysite:1234');
+        server.onopen = function() {
+            resolve(server);
+        };
+        server.onerror = function(err) {
+            reject(err);
+        };
+
+    });
+}
+
   const createWSSClient = ({room, appId, key, onMessage}) => {
-    const url = 'wss://amo-apps-websocket.services.mobilon.ru';
-    const r = [`room=${room}`, `appId=${appId}`, `key=${key}`].join('&');
-    const socket = new WebSocket(url + '?' + r);
+    return new Promise(function(resolve, reject) { 
+      const url = 'wss://amo-apps-websocket.services.mobilon.ru';
+      const r = [`room=${room}`, `appId=${appId}`, `key=${key}`].join('&');
+      const socket = new WebSocket(url + '?' + r);
 
-    socket.onopen = () => {
-      console.log('Connected to the server');
-      // socket.send(JSON.stringify({hello: 'hello'}));
-    };
+      socket.onopen = () => {
+        console.log('Connected to the server');
+        // socket.send(JSON.stringify({hello: 'hello'}));
+        resolve({send})
+      };
 
-    socket.onmessage = ((event) => {
-      console.log(`Received message from server, ${event.data}`);
-      onMessage(event.data);
-    })
+      socket.onmessage = ((event) => {
+        console.log(`Received message from server, ${event.data}`);
+        onMessage(event.data);
+      })
 
-    const send = (object) => {
-      if (!socket.readyState) {
-        return;
+      socket.onerror = function(err) {
+        reject(err);
+      };
+
+      const send = (object) => {
+        if (!socket.readyState) {
+          return;
+        }
+        socket.send(JSON.stringify(object));
       }
-      socket.send(JSON.stringify(object));
-    }
-
-    return {
-      send   
-    }
+    })
   }
 
   const client = createWSSClient({
@@ -33,10 +51,12 @@
     appId: 'app09',
     key: 'keyrndmagtn',
     onMessage: (e)=> {console.log(e)},
-  });
-  setTimeout(() => {
+  }).then((client)=> {
     client.send({hello: 'hello2'});
-  }, 1000);
+  })
+  
+  
+  
   
 </script>
 </html>
