@@ -1,0 +1,42 @@
+<html>
+
+<script>
+  const createWSSClient = ({room, appId, key, onMessage}) => {
+    const url = 'wss://amo-apps-websocket.services.mobilon.ru';
+    const r = [`room=${room}`, `appId=${appId}`, `key=${key}`].join('&');
+    const socket = new WebSocket(url + '?' + r);
+
+    socket.onopen = () => {
+      console.log('Connected to the server');
+      // socket.send(JSON.stringify({hello: 'hello'}));
+    };
+
+    socket.onmessage = ((event) => {
+      console.log(`Received message from server, ${event.data}`);
+      onMessage(event.data);
+    })
+
+    const send = (object) => {
+      if (!socket.readyState) {
+        return;
+      }
+      socket.send(JSON.stringify(object));
+    }
+
+    return {
+      send   
+    }
+  }
+
+  const client = createWSSClient({
+    room: 'tt',
+    appId: 'app09',
+    key: 'keyrndmagtn',
+    onMessage: (e)=> {console.log(e)},
+  });
+  setTimeout(() => {
+    client.send({hello: 'hello2'});
+  }, 1000);
+  
+</script>
+</html>
